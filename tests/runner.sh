@@ -20,9 +20,15 @@ info "Preparing filesystem and environment..."
 
 mkdir -p "$HOME"/.kube
 
+outputdir="$HOME/testoutput"
+mkdir -p $outputdir
+
 echo "Start time inside runner: $(date)"
 
 section "BASIC TESTS"
+
+include_counter=0
+exclude_counter=0
 
 for i in "$CURR_DIR"/test_*.sh ; do
   base=$(basename "$i" .sh)
@@ -57,11 +63,15 @@ for i in "$CURR_DIR"/test_*.sh ; do
   # skip or run test
   if [ "$skip" = true ]; then
     highlight "***** Skipping $base *****"
+    ((exclude_counter=exclude_counter+1))
   else
     highlight "***** Running $base *****"
-    "$i" || abort "test $base failed"
+    ((include_counter=include_counter+1))
+    "$i" &
   fi
 done
+
+wait
 
 # Additional (extra) tests
 if [[ -n "$E2E_EXTRA" ]]; then
@@ -78,6 +88,29 @@ if [[ -n "$E2E_EXTRA" ]]; then
 else
   info "NOT running EXTRA tests, please set E2E_EXTRA=1 if you wish to do so"
 fi
+
+# Output logs of failed tests
+failed=0
+for f in "$outputdir"/*.failed; do
+  base=$(basename "$f")
+  log "${RED}***************************************************${END}"
+  log "${RED}*** Failed Test ${base%%.*}${END}"
+  log "${RED}***************************************************${END}"
+  ((failed=failed+1))
+  cat "$f"
+done
+
+# Info Output about Test Results
+info "FINISHED\n> Run:\t\t$include_counter\n> Not Run:\t$exclude_counter\n> Passed:\t$((include_counter-failed))\n> Failed:\t$failed"
+
+# Error out if we encountered any failed test
+warn "Failed Tests: $failed"
+if [[ failed -gt 0 ]]; then
+  exit 1
+fi
+
+
+
 
 exit 0
 

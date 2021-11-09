@@ -34,6 +34,18 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+failed_with_logfile() {
+  if [ -z "$1" ] ; then
+    log "${RED}failed!!!${END}"
+  else
+    log "${RED}$1${END}"
+  fi
+  if [[ -n "$2" ]]; then
+    mv "$2" "$2.failed"
+  fi
+  abort "test failed"
+}
+
 failed() {
   if [ -z "$1" ] ; then
     log "${RED}failed!!!${END}"
