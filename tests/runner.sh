@@ -29,8 +29,17 @@ section "BASIC TESTS"
 
 include_counter=0
 exclude_counter=0
+max_batch_size=4
+current_batch_size=0
 
 for i in "$CURR_DIR"/test_*.sh ; do
+
+  if [[ current_batch_size -eq max_batch_size ]]; then
+    echo "max batch size reached.. waiting"
+    current_batch_size=0
+    wait
+  fi
+
   base=$(basename "$i" .sh)
   skip=false
   included=false
@@ -67,6 +76,7 @@ for i in "$CURR_DIR"/test_*.sh ; do
   else
     highlight "***** Running $base *****"
     ((include_counter=include_counter+1))
+    ((current_batch_size=current_batch_size+1))
     "$i" &
   fi
 done

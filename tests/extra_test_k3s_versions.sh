@@ -9,6 +9,9 @@ FAILED_TESTS=()
 # shellcheck source=./common.sh
 source "$CURR_DIR/common.sh"
 
+LOG_FILE="$HOME/testoutput/$( basename "${BASH_SOURCE[0]}" ).log"
+exec >${LOG_FILE} 2>&1
+
 for version in "${K3S_VERSIONS[@]}"; do
 
   export CURRENT_STAGE="Suite | k3s-versions | $version"
