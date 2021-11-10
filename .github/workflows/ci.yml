@@ -1,0 +1,13 @@
+name: k3d.io
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17.1'
+      - run:  time go build -v ./...
